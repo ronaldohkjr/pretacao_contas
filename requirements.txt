@@ -1,0 +1,15 @@
+# Bibliotecas do servidor (versões testadas). O leitor de notas (rapidocr_onnxruntime) é instalado à parte,
+# sem dependências, porque ele puxaria o opencv-python, que conflita com o opencv-python-headless.
+opencv-python-headless==5.0.0.93
+numpy==2.5.4
+pillow==12.3.0
+reportlab==5.0.1
+openpyxl==3.1.5
+pymupdf==1.28.2
+pillow-heif==1.8.1
+onnxruntime==1.31.0
+pyclipper==1.4.0
+shapely==2.2.0
+six==1.17.0
+pyyaml==6.0.3
+tqdm==4.70.1

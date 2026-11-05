@@ -1,0 +1,5 @@
+# texto sempre com quebra de linha LF (o servidor é Linux); planilha é binária
+* text=auto eol=lf
+*.xlsx binary
+*.png binary
+*.pdf binary

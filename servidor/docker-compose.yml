@@ -1,0 +1,37 @@
+# Para rodar num servidor próprio (ex.: Oracle Cloud "Always Free" ou uma VM da empresa).
+# Antes: copie .env.exemplo para .env e preencha. Depois: docker compose up -d
+services:
+  gerador:
+    image: ghcr.io/${GITHUB_USUARIO}/gerador-nf-online:latest   # montada pelo GitHub a cada atualização
+    restart: unless-stopped
+    environment:
+      URL_PUBLICA: https://${DOMINIO}
+      MS_CLIENT_ID: ${MS_CLIENT_ID:-}
+      MS_CLIENT_SECRET: ${MS_CLIENT_SECRET:-}
+      MS_TENANT: ${MS_TENANT:-organizations}
+    volumes:
+      - dados:/dados            # usuários, notas e relatórios (fica no disco do servidor; faça backup)
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+
+  caddy:                        # HTTPS automático (certificado Let's Encrypt grátis)
+    image: caddy:2.8
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMINIO: ${DOMINIO}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+
+  watchtower:                   # atualiza sozinho quando sai versão nova no GitHub (confere a cada hora)
+    image: containrrr/watchtower:1.7.1
+    restart: unless-stopped
+    command: --label-enable --cleanup --interval 3600
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOME}/.docker/config.json:/config.json:ro   # login no ghcr.io (repositório privado)
+
+volumes:
+  dados:
+  caddy_data:

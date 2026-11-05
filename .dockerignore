@@ -1,0 +1,7 @@
+dados/
+**/__pycache__/
+*.log
+.git/
+.github/
+servidor/
+*.md

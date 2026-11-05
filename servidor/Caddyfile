@@ -1,0 +1,10 @@
+{$DOMINIO} {
+	encode gzip
+	request_body {
+		max_size 40MB
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+	}
+	reverse_proxy gerador:8080
+}

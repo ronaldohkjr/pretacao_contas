@@ -1,0 +1,6 @@
+# dados dos técnicos (usuários, CPF, banco, notas) NUNCA vão para o GitHub
+dados/
+servidor/.env
+**/__pycache__/
+*.log
+*.parcial

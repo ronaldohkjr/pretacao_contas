@@ -1,0 +1,45 @@
+# A cada atualização no GitHub: monta a imagem, testa e publica no GitHub Container Registry (privado).
+name: Montar, testar e publicar
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Montar a imagem
+        run: docker build -t gerador:teste .
+
+      - name: Testar (servidor no ar, LibreOffice e OCR)
+        run: |
+          docker run -d --name g -p 8080:8080 gerador:teste
+          for i in $(seq 1 30); do curl -sf http://localhost:8080/api/ping && break; sleep 2; done
+          curl -sf http://localhost:8080/api/ping
+          curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/ | grep -q 303
+          docker exec g python -c "
+          import sys, shutil; sys.path.insert(0, '/app/app')
+          from pathlib import Path
+          import servidor as s
+          s.P.usar('ci'); x = Path('/tmp/t.xlsx'); shutil.copy('/app/modelo/DESPESAS_MODELO.xlsx', x)
+          erro = s.planilha_em_pdf(x, Path('/tmp/t.pdf')); assert not erro, erro; print('planilha em PDF: OK')
+          from rapidocr_onnxruntime import RapidOCR; RapidOCR(); print('OCR: OK')
+          "
+          docker logs g
+
+      - name: Publicar a imagem (ghcr.io)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          IMG="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/gerador-nf-online"
+          VER="$(cat VERSAO.txt | tr -d '[:space:]')"
+          docker tag gerador:teste "$IMG:latest"; docker tag gerador:teste "$IMG:$VER"
+          docker push "$IMG:latest"; docker push "$IMG:$VER"

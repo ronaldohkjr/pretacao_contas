@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prestação de Contas — Online</title>
+<style>
+  :root{--bg:#f4f5f7;--card:#fff;--tx:#1d2330;--mut:#667085;--bd:#dfe3ea;--pri:#1f6f43;--pri2:#e7f3ec;--warn:#b54708;--warnbg:#fff4e5;--err:#b42318;--errbg:#fdecea}
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;font:15px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+  header{background:var(--pri);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header h1{font-size:19px;margin:0;font-weight:600;flex:1}
+  header .st{font-size:13px;opacity:.85}
+  main{max-width:1200px;margin:0 auto;padding:20px 16px 60px;display:grid;gap:18px}
+  section{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:18px 20px}
+  h2{font-size:16px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  h2 .n{background:var(--pri);color:#fff;border-radius:50%;width:24px;height:24px;display:inline-grid;place-items:center;font-size:13px}
+  label{display:flex;flex-direction:column;font-size:12.5px;color:var(--mut);gap:4px}
+  input,select,textarea{font:inherit;color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:7px 9px;background:#fff;min-width:0}
+  input:focus,select:focus,textarea:focus{outline:2px solid #9bd3b2;border-color:var(--pri)}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .grid .wide{grid-column:span 2}
+  button{font:inherit;border:1px solid var(--bd);background:#fff;border-radius:6px;padding:7px 14px;cursor:pointer}
+  button:hover{background:#f0f2f5}
+  button.pri{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+  button.pri:hover{background:#185a36}
+  button.mini{padding:3px 9px;font-size:13px}
+  button:disabled{opacity:.5;cursor:wait}
+  #drop{border:2px dashed #a9c9b6;border-radius:10px;padding:22px;text-align:center;color:var(--mut);background:#fafcfb;cursor:pointer}
+  #drop.over{background:var(--pri2);border-color:var(--pri)}
+  .linha{display:grid;grid-template-columns:110px 1fr;gap:14px;border-top:1px solid var(--bd);padding:14px 0}
+  .linha.off{opacity:.45}
+  .linha img{width:110px;height:150px;object-fit:contain;background:#eef0f3;border-radius:6px;cursor:zoom-in;border:1px solid var(--bd)}
+  .campos{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));align-items:end}
+  .campos .arq{grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
+  .campos .arq b{word-break:break-all}
+  .auto{background:#fff8db!important;border-color:#e0b100!important}
+  .chk{flex-direction:row;align-items:center;gap:6px;color:var(--tx);font-size:14px}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th,td{border-bottom:1px solid var(--bd);padding:6px 8px;text-align:right;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  thead th{background:#f7f8fa;font-weight:600;color:var(--mut);font-size:12.5px}
+  tfoot td{font-weight:700}
+  .scroll{overflow-x:auto}
+  .alerta{background:var(--warnbg);color:var(--warn);border-radius:6px;padding:8px 12px;margin-top:10px;font-size:14px}
+  .erro{background:var(--errbg);color:var(--err);border-radius:6px;padding:8px 12px;margin-top:10px;font-size:14px}
+  .ok{background:var(--pri2);color:var(--pri);border-radius:6px;padding:8px 12px;margin-top:10px;font-size:14px}
+  .tag{display:inline-block;font-size:12px;border-radius:10px;padding:1px 8px;background:#eef0f3;color:var(--mut)}
+  pre{white-space:pre-wrap;background:#f7f8fa;border:1px solid var(--bd);border-radius:6px;padding:10px 12px;margin:6px 0;font:14px/1.5 "Segoe UI",sans-serif}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .muted{color:var(--mut);font-size:13px}
+  #zoom{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:9;cursor:zoom-out}
+  #zoom img{max-width:94vw;max-height:94vh;background:#fff}
+  .st-ok{background:var(--pri2);color:var(--pri);font-weight:600}
+  .st-pend{background:var(--warnbg);color:var(--warn);font-weight:600}
+  .st-nao{background:#eef0f3;color:var(--mut)}
+  #hist td{white-space:normal;vertical-align:middle}
+  #hist tr.atual td{background:#f3faf6}
+  .exc{border:1px solid #f0c48a;background:#fffaf2;border-radius:8px;padding:10px 14px;margin-top:10px}
+  .exc.just{border-color:#a9d8bb;background:#f5fbf7}
+  .exc h3{font-size:14.5px;margin:0 0 6px}
+  .exc .op{display:flex;gap:18px;flex-wrap:wrap;margin:6px 0}
+  .exc .op label{flex-direction:row;align-items:center;gap:6px;color:var(--tx);font-size:14px}
+  .exc textarea{width:100%;min-height:54px;font:inherit}
+  td.acima{color:var(--err);font-weight:700}
+  td.acima.just{color:var(--warn)}
+  .tag.aj{background:var(--warnbg);color:var(--warn);font-weight:600}
+  .tag.jt{background:var(--pri2);color:var(--pri);font-weight:600}
+  #carga{position:fixed;inset:0;z-index:20;background:rgba(20,28,40,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+  #carga[hidden]{display:none}
+  #carga .cx{background:#fff;border-radius:14px;padding:26px 28px;width:min(620px,100%);box-shadow:0 12px 50px rgba(0,0,0,.4);text-align:center}
+  #carga h3{margin:10px 0 12px;font-size:21px;color:var(--pri)}
+  #carga .spin{width:46px;height:46px;margin:0 auto;border:5px solid var(--pri2);border-top-color:var(--pri);border-radius:50%;animation:gira .9s linear infinite}
+  #cEtapas{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  #cEtapas span{font-size:13px;padding:3px 10px;border-radius:12px;background:#eef0f3;color:var(--mut)}
+  #cEtapas span.agora{background:var(--pri);color:#fff;font-weight:600}
+  #cEtapas span.feita{background:var(--pri2);color:var(--pri)}
+  #cEtapas span.feita::before{content:"✓ "}
+  #carga .trilho{height:26px;background:#e6e9ee;border-radius:13px;overflow:hidden}
+  #cBarra{height:100%;width:0;border-radius:13px;transition:width .4s;
+    background:repeating-linear-gradient(45deg,#2b8a57 0 16px,#1f6f43 16px 32px);background-size:45px 45px;animation:listras 1s linear infinite}
+  #carga .cLinha{display:flex;justify-content:space-between;margin-top:8px;font-size:14px;color:var(--mut)}
+  #cPct{font-size:20px;color:var(--tx)}
+  #cAtual{margin-top:8px;font-size:14.5px;word-break:break-all}
+  #carga .cAviso{margin:16px 0 0;background:var(--warnbg);color:var(--warn);border-radius:8px;padding:10px 12px;font-size:14px}
+  @keyframes gira{to{transform:rotate(360deg)}}
+  @keyframes listras{to{background-position:45px 0}}
+  dialog{border:0;border-radius:12px;padding:0;width:min(760px,96vw);max-height:94vh;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  dialog form{padding:20px 22px;display:grid;gap:14px}
+  dialog h3{margin:0;font-size:17px}
+  dialog fieldset{border:1px solid var(--bd);border-radius:8px;padding:10px 14px 14px;margin:0;min-width:0}
+  dialog legend{font-weight:600;font-size:13.5px;padding:0 6px}
+  dialog textarea{min-height:120px;resize:vertical}
+  #assPrev{max-width:220px;max-height:80px;border:1px solid var(--bd);border-radius:6px;background:#fff}
+  .baixar{margin-top:16px;border:2px solid var(--pri);background:var(--pri2);border-radius:10px;padding:12px 16px;display:grid;gap:8px}
+  a.btn{display:inline-block;text-decoration:none;font:inherit;border:1px solid var(--bd);background:#fff;color:var(--tx);border-radius:6px;padding:7px 14px}
+  a.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+  a.btn.pri:hover{background:#185a36}
+  @media (max-width:640px){.linha{grid-template-columns:1fr}.linha img{width:100%;height:220px}.grid .wide{grid-column:auto}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Prestação de Contas de Viagem</h1>
+  <span class="st" id="quem"></span>
+  <span class="st" id="status">carregando…</span>
+  <button class="mini" id="btnDados" title="Seus dados para a planilha e o e-mail">Meus dados</button>
+  <button class="mini" id="btnNova" title="Arquiva as notas e relatórios desta viagem e começa outra">Nova viagem</button>
+  <button class="mini" id="btnUsuarios" hidden title="Cadastrar técnicos e redefinir senhas">Usuários</button>
+  <button class="mini" id="btnSenha" title="Trocar a sua senha">Trocar senha</button>
+  <button class="mini" id="btnLogout" title="Sair do sistema">Sair</button>
+</header>
+<main>
+  <section>
+    <h2><span class="n">1</span>Dados da viagem</h2>
+    <div class="grid">
+      <label>Cliente<input id="cliente" placeholder="nome do cliente"></label>
+      <label title="Sugestões tiradas das notas; pode digitar outra">Cidade do atendimento<input id="cidade" list="dl-cidades" autocomplete="off" placeholder="escolha ou digite"></label>
+      <label>UF<input id="uf" list="dl-ufs" maxlength="2" autocomplete="off" placeholder="GO"></label>
+      <datalist id="dl-cidades"></datalist><datalist id="dl-ufs"></datalist>
+      <label title="Calculada pela nota mais antiga">Data inicial (das notas)<input id="inicio" type="date" readonly tabindex="-1" style="background:#f4f5f7"></label>
+      <label title="Calculada pela nota mais recente">Data final (das notas)<input id="fim" type="date" readonly tabindex="-1" style="background:#f4f5f7"></label>
+      <label class="wide">Finalidade<input id="finalidade" placeholder="ex.: instalação e treinamento do sistema"></label>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">2</span>Notas</h2>
+    <div id="drop">Arraste aqui as fotos e PDFs das notas, ou clique para escolher<br>
+      <span class="muted">.jpg, .png, .pdf e .heic — ficam guardadas na sua conta</span></div>
+    <input type="file" id="file" multiple accept=".jpg,.jpeg,.png,.pdf,.heic,.heif" hidden>
+    <p class="muted">Ao enviar, o programa <b>lê cada nota</b> e preenche categoria, valor e data — os campos em <span style="background:#fff8db;border:1px solid #e0b100;padding:0 4px;border-radius:3px">amarelo</span> foram lidos automaticamente: confira. Notas escritas à mão quase sempre precisam ser digitadas.<br>Para cada nota, confira data, hora, categoria e valor pago. Se o recorte cortar alguma parte,
+      troque o <b>tratamento</b> (cupom → documento → foto inteira). Desmarque <b>Incluir</b> para deixar a nota fora do reembolso.</p>
+    <div id="linhas"></div>
+  </section>
+
+  <section>
+    <h2><span class="n">3</span>Resumo por dia</h2>
+    <div class="scroll" id="resumo"></div>
+    <div id="alertas"></div>
+    <div id="politica"></div>
+  </section>
+
+  <section>
+    <h2><span class="n">4</span>Gerar relatórios</h2>
+    <div class="row"><button class="pri" id="btnGerar">Gerar PDF, planilha e e-mail</button>
+</div>
+    <div id="saida"></div>
+  </section>
+  <section>
+    <h2><span class="n">5</span>Histórico de relatórios</h2>
+    <p class="muted">Cada relatório gerado fica registrado aqui. Depois de mandar o e-mail para aprovação, marque <b>Enviado</b>.</p>
+    <div class="scroll" id="hist"><p class="muted">carregando…</p></div>
+  </section>
+</main>
+<div id="zoom"><img alt=""></div>
+
+<div id="carga" hidden role="alertdialog" aria-live="polite" aria-label="Carregando as notas">
+  <div class="cx">
+    <div class="spin" aria-hidden="true"></div>
+    <h3 id="cTitulo">Preparando…</h3>
+    <div id="cEtapas"></div>
+    <div class="trilho"><div id="cBarra"></div></div>
+    <div class="cLinha"><b id="cPct">0%</b><span id="cTempo"></span></div>
+    <div id="cAtual"></div>
+    <p class="cAviso"><b>O programa está trabalhando, não travou.</b> Não feche esta página.<br>
+      Cada foto leva de 5 a 15 segundos para ser lida. A página é liberada sozinha quando terminar.</p>
+  </div>
+</div>
+
+<dialog id="dlgSenha">
+  <form method="dialog" id="fSenha">
+    <h3>Trocar senha</h3>
+    <p class="muted" id="senhaIntro" style="margin:0">Mínimo de 8 caracteres, com letras e números.</p>
+    <div class="grid">
+      <label>Senha atual<input name="atual" type="password" autocomplete="current-password"></label>
+      <label>Nova senha<input name="nova" type="password" autocomplete="new-password"></label>
+      <label>Repita a nova senha<input name="conf" type="password" autocomplete="new-password"></label>
+    </div>
+    <div id="senhaErro"></div>
+    <div class="row" style="justify-content:flex-end"><button type="button" id="btnSenhaCancelar">Cancelar</button>
+      <button type="submit" class="pri">Salvar senha</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlgUsuarios">
+  <form method="dialog" id="fUsuarios">
+    <h3>Usuários</h3>
+    <p class="muted" style="margin:0">Cada técnico entra com o próprio usuário e vê só as próprias viagens. Ao cadastrar ou redefinir, passe a senha provisória ao técnico: ele troca no primeiro acesso.</p>
+    <div class="scroll" id="listaUsuarios"></div>
+    <fieldset><legend>Novo técnico</legend><div class="grid">
+      <label>Nome<input name="nome" autocomplete="off"></label>
+      <label>Usuário (login)<input name="login" autocomplete="off" placeholder="ex.: joao.silva"></label>
+      <label>Senha provisória<input name="senha" autocomplete="off"></label>
+      <label class="chk" style="align-self:end"><input type="checkbox" name="admin">Administrador</label>
+    </div><div class="row" style="margin-top:10px"><button type="button" class="pri" id="btnNovoUsuario">Cadastrar</button></div></fieldset>
+    <div id="usuariosErro"></div>
+    <div class="row" style="justify-content:flex-end"><button type="button" id="btnUsuariosFechar">Fechar</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlgDados">
+  <form method="dialog" id="fDados">
+    <h3>Meus dados</h3>
+    <p class="muted" id="dadosIntro" style="margin:0">Estes dados vão na planilha e no e-mail de todos os relatórios. Ficam só neste computador (arquivo config.json).</p>
+    <fieldset><legend>Dados pessoais</legend><div class="grid">
+      <label class="wide">Nome completo *<input name="nome" autocomplete="off"></label>
+      <label title="Vai no nome dos arquivos: 20261016_NOTAS_JOAO_...">Nome curto (nos arquivos) *<input name="nome_curto" autocomplete="off" placeholder="ex.: JOAO"></label>
+      <label>CPF *<input name="cpf" autocomplete="off" placeholder="000.000.000-00"></label>
+      <label>Centro de custo *<input name="centro_custo" autocomplete="off"></label>
+      <label>Banco *<input name="banco" autocomplete="off"></label>
+      <label>Agência *<input name="agencia" autocomplete="off"></label>
+      <label>Conta corrente *<input name="conta" autocomplete="off" placeholder="00000-0"></label>
+    </div>
+    <div class="row" style="margin-top:12px"><span class="muted">Assinatura (opcional, vai no campo Assinatura da planilha):</span>
+      <img id="assPrev" alt="" hidden>
+      <button type="button" class="mini" id="btnAss">Escolher imagem…</button>
+      <button type="button" class="mini" id="btnAssDel" hidden>Remover</button>
+      <input type="file" id="fileAss" accept=".png,.jpg,.jpeg" hidden></div>
+    </fieldset>
+    <fieldset><legend>E-mail</legend><div class="grid">
+      <label>Nome do aprovador *<input name="aprovador" autocomplete="off"></label>
+      <label class="wide" title="Vários e-mails: separe com ;">E-mail do aprovador (Para)<input name="email_para" type="text" autocomplete="off" placeholder="aprovador@agres.com.br"></label>
+      <label class="wide" title="Opcional. Vários e-mails: separe com ;">Cópia (Cc)<input name="email_cc" type="text" autocomplete="off" placeholder="opcional"></label>
+      <label style="grid-column:1/-1">Texto do e-mail
+        <textarea name="corpo_email"></textarea>
+        <span class="muted">Trocados automaticamente: {APROVADOR} {CLIENTE} {CIDADE} {UF} {FINALIDADE} {DATA_INICIAL} {DATA_FINAL} {NOME}
+          · <a href="#" id="corpoPadrao">voltar ao texto padrão</a></span></label>
+    </div></fieldset>
+    <fieldset><legend>Política</legend><div class="grid">
+      <label>Limite de hospedagem por diária (R$)<input name="limite_hospedagem_diaria" type="number" step="0.01" min="0"></label>
+      <label>Limite de refeição por dia (R$)<input name="limite_refeicao_dia" type="number" step="0.01" min="0"></label>
+    </div><p class="muted" style="margin:8px 0 0">Acima do limite, explique o motivo (vai no e-mail) ou o reembolso é ajustado ao limite automaticamente. 0 = sem limite.</p><div>
+    </div></fieldset>
+    <div id="dadosErro"></div>
+    <div class="row" style="justify-content:space-between"><span class="muted" id="versao"></span>
+      <span class="row"><button type="button" id="btnDadosCancelar">Cancelar</button>
+      <button type="submit" class="pri">Salvar</button></span></div>
+  </form>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const CAMPOS = ["cliente","cidade","uf","inicio","fim","finalidade"];
+const EDITAVEIS = ["cliente","cidade","uf","finalidade"];
+const MODOS = [["cupom","Cupom (recorte)"],["documento","Documento A4"],["inteira","Foto inteira"],["print","Print / digital"]];
+let E = null, CATS = [], POL = {}, arquivos = [], POLX = [], REEMB = [];
+
+const br = v => (Number(v)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const dbr = s => s ? s.split("-").reverse().slice(0,2).join("/") : "";
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const isPdf = n => /\.pdf$/i.test(n||"");
+
+const FORA_DO_AR = "Sem conexão com o servidor. Confira a internet e tente de novo (suas notas e dados continuam salvos).";
+async function api(url, body, raw){
+  let r;
+  try{ r = await fetch(url, body===undefined ? {} : {method:"POST", headers:{"X-Gerador":"1"}, body: raw ? body : JSON.stringify(body)}); }
+  catch(e){ $("#status").textContent = "sem conexão"; throw new Error(FORA_DO_AR); }
+  if(r.status === 401){ location.href = "/login"; throw new Error("sessão encerrada"); }  // sessão venceu: entrar de novo
+  if(r.status === 403 && (await r.clone().json().catch(()=>({}))).erro === "TROCAR_SENHA"){ abrirSenha(true); throw new Error("Troque a senha provisória para continuar."); }
+  if(r.status === 409){  // outra aba começou uma nova viagem
+    alert("Esta aba estava com uma viagem antiga (outra aba começou uma nova viagem). Vou recarregar com os dados atuais.");
+    location.reload(); throw new Error("aba desatualizada");
+  }
+  const j = await r.json().catch(()=>({erro:"resposta inválida"}));
+  if(!r.ok) throw new Error(j.erro||r.statusText);
+  return j;
+}
+
+function palpite(nome){
+  let m = nome.match(/(20\d{2})(\d{2})(\d{2})[_-](\d{2})(\d{2})/);
+  if(m) return {data:`${m[1]}-${m[2]}-${m[3]}`, hora:`${m[4]}:${m[5]}`};
+  m = nome.match(/(\d{2})[.\-_](\d{2})[.\-_](\d{2,4})/);
+  if(m){ const a = m[3].length==2 ? "20"+m[3] : m[3]; return {data:`${a}-${m[2]}-${m[1]}`, hora:""}; }
+  return {data:"", hora:""};
+}
+function novaLinha(arquivo){
+  return {arquivo, modo: isPdf(arquivo) ? "pdf" : "cupom", ...palpite(arquivo), categoria:"", valor:"", descricao:"", incluir:true};
+}
+
+let tSalvar;
+function salvar(){
+  clearTimeout(tSalvar); $("#status").textContent = "salvando…";
+  tSalvar = setTimeout(async()=>{ try{ await api("/api/estado", E); $("#status").textContent = "salvo"; }
+    catch(e){ $("#status").textContent = "erro ao salvar: "+e.message; } }, 500);
+}
+
+async function carregar(){
+  const j = await api("/api/estado");
+  E = j.estado; CATS = j.categorias; POL = j.politica; arquivos = j.arquivos;
+  E.linhas = (E.linhas || []).filter(l => !l.arquivo || arquivos.includes(l.arquivo) || String(l.valor||"").trim());
+  const comLinha = new Set(E.linhas.map(l=>l.arquivo));
+  for(const a of arquivos) if(!comLinha.has(a)) E.linhas.push(novaLinha(a));
+  CAMPOS.forEach(k => $("#"+k).value = E[k]||"");
+  E.linhas.forEach(l => l.lendo = false);
+  desenharLinhas(); resumo(); $("#status").textContent = "pronto";
+  lerPendentes();
+}
+
+EDITAVEIS.forEach(k => $("#"+k).addEventListener("input", ev => {
+  E[k] = k==="uf" ? ev.target.value.toUpperCase() : ev.target.value;
+  if(k==="uf") ev.target.value = E[k];
+  resumo(); salvar();
+}));
+
+function desenharLinhas(){
+  // guarda o campo onde o cursor está, para devolver depois de redesenhar
+  const at = document.activeElement, foco = at && at.closest && at.closest(".linha") && at.dataset.k
+    ? {i:[...document.querySelectorAll("#linhas .linha")].indexOf(at.closest(".linha")), k:at.dataset.k, s:at.selectionStart} : null;
+  desenharLinhas2();
+  if(foco){ const el = document.querySelectorAll("#linhas .linha")[foco.i]?.querySelector(`[data-k="${foco.k}"]`);
+    if(el){ el.focus();
+      if(foco.s!=null){ try{ el.setSelectionRange(foco.s, foco.s); }catch(e){} }
+      else if(el.type==="number"){ const v = el.value; el.value = ""; el.value = v; } } }  // campo numérico: cursor no fim
+}
+// aviso "reembolso ajustado" de cada nota: atualizado no lugar, sem redesenhar (não tira o cursor do campo)
+function tagReemb(i){
+  const l = E.linhas[i];
+  return REEMB[i]!=null && Number(l.valor) && Math.abs(REEMB[i]-Number(l.valor))>0.004 ? `<span class="tag aj">reembolso ajustado: R$ ${br(REEMB[i])}</span>` : "";
+}
+function atualizarReembolso(){
+  document.querySelectorAll("#linhas .linha").forEach((div, i) => { const s = div.querySelector(".reemb"); if(s) s.innerHTML = tagReemb(i); });
+}
+function desenharLinhas2(){
+  const box = $("#linhas"); box.innerHTML = "";
+  if(!E.linhas.length){ box.innerHTML = '<p class="muted">Nenhuma nota ainda.</p>'; return; }
+  E.linhas.forEach((l,i)=>{
+    const falta = l.arquivo && !arquivos.includes(l.arquivo);
+    const div = document.createElement("div");
+    div.className = "linha" + (l.incluir===false ? " off" : "");
+    const src = l.arquivo && !falta ? `/api/preview?arquivo=${encodeURIComponent(l.arquivo)}&modo=${l.modo}&w=300` : "";
+    div.innerHTML = `
+      <img ${src?`src="${src}"`:""} alt="nota" title="Clique para ampliar">
+      <div class="campos">
+        <div class="arq"><b>${esc(l.arquivo||"(sem arquivo)")}</b>
+          ${falta?'<span class="tag" style="color:var(--err)">arquivo não está em entradas</span>':""}
+          ${l.lendo?'<span class="tag" style="background:#e7f0fb;color:#1d5fa8">lendo a nota…</span>':""}
+          ${l.lido && !l.lendo && !String(l.valor||"").trim()?'<span class="tag" style="color:var(--warn)">não consegui ler o valor — digite</span>':""}
+          ${(l.auto||[]).length && l.categoria==="Hospedagem" && (l.auto||[]).includes("data")?'<span class="tag" style="color:var(--warn)">hotel: confira a data de ENTRADA</span>':""}
+          ${l.arquivo && !falta && !l.lendo ? '<button class="mini" data-acao="ler" title="Lê a nota de novo e substitui os campos">Ler de novo</button>':""}
+          ${l.arquivo && !falta ? `<a href="/api/original?arquivo=${encodeURIComponent(l.arquivo)}" target="_blank">original</a>`:""}
+          <label class="chk"><input type="checkbox" data-k="incluir" ${l.incluir!==false?"checked":""}>Incluir</label>
+          <button class="mini" data-acao="dup" title="Mesma nota com dois lançamentos (ex.: diária + consumo)">Duplicar</button>
+          <button class="mini" data-acao="del">Remover linha</button></div>
+        <label>Data<input type="date" data-k="data" value="${esc(l.data)}"></label>
+        <label>Hora<input type="time" data-k="hora" value="${esc(l.hora)}"></label>
+        <label>Categoria<select data-k="categoria"><option value="">— escolha —</option>
+          ${CATS.map(c=>`<option ${c===l.categoria?"selected":""}>${c}</option>`).join("")}</select></label>
+        <label title="0 = só anexar ao PDF, sem lançar na planilha">Valor pago (R$)<input type="number" step="0.01" min="0" data-k="valor" value="${esc(l.valor)}">
+          <span class="reemb">${tagReemb(i)}</span></label>
+        ${l.categoria==="Hospedagem" ? `<label title="Quantas diárias esta nota cobre (limite de R$ ${br(POL["Hospedagem"]||0)} por diária)">Diárias<input type="number" min="1" step="1" data-k="diarias" value="${esc(l.diarias||1)}"></label>` : ""}
+        <label>Tratamento<select data-k="modo" ${isPdf(l.arquivo)?"disabled":""}>
+          ${isPdf(l.arquivo) ? '<option value="pdf">PDF (como está)</option>' :
+            MODOS.map(([v,t])=>`<option value="${v}" ${v===l.modo?"selected":""}>${t}</option>`).join("")}</select></label>
+        <label style="grid-column:span 2">Descrição / estabelecimento<input data-k="descricao" value="${esc(l.descricao)}" placeholder="ex.: Posto Central, Rio Verde"></label>
+        ${l.categoria==="Outras Despesas" ? `<label style="grid-column:1/-1;color:${String(l.obs||"").trim()?"var(--mut)":"var(--err)"}">O que foi esta despesa? * <span class="muted">(vai na observação de Outras Despesas do relatório)</span>
+          <input data-k="obs" value="${esc(l.obs)}" placeholder="ex.: Estacionamento - Hotel Central (NFS-e 1234)" style="${String(l.obs||"").trim()?"":"border-color:var(--err)"}"></label>` : ""}
+      </div>`;
+    div.querySelector("img").onclick = () => { if(src){ $("#zoom img").src = src.replace("w=300","w=1400"); $("#zoom").style.display="flex"; } };
+    div.querySelectorAll("[data-k]").forEach(inp => { if((l.auto||[]).includes(inp.dataset.k)) inp.classList.add("auto"); });
+    const bLer = div.querySelector('[data-acao="ler"]');
+    if(bLer) bLer.onclick = () => { l.lido = false; l.auto = []; ["categoria","valor","descricao"].forEach(k=>l[k]=""); Object.assign(l, palpite(l.arquivo)); lerPendentes(); };
+    div.querySelectorAll("[data-k]").forEach(inp => inp.addEventListener(inp.tagName==="SELECT"||inp.type==="checkbox"?"change":"input", ()=>{
+      const k = inp.dataset.k;
+      if(l.auto && l.auto.includes(k)){ l.auto = l.auto.filter(x=>x!==k); inp.classList.remove("auto"); }
+      l[k] = inp.type==="checkbox" ? inp.checked : inp.value;
+      if(k==="modo" || k==="incluir" || k==="categoria" || (k==="obs" && String(l.obs||"").trim().length<=1)) desenharLinhas();
+      resumo(); salvar();
+    }));
+    div.querySelector('[data-acao="dup"]').onclick = () => { E.linhas.splice(i+1,0,{...l, valor:"", categoria:"", descricao:""}); desenharLinhas(); resumo(); salvar(); };
+    div.querySelector('[data-acao="del"]').onclick = () => { if(confirm("Remover esta linha? (o arquivo continua guardado na sua conta)")){ E.linhas.splice(i,1); desenharLinhas(); resumo(); salvar(); } };
+    box.appendChild(div);
+  });
+}
+$("#zoom").onclick = () => $("#zoom").style.display = "none";
+
+function diasViagem(){
+  if(!E.inicio || !E.fim) return [];
+  const out = []; let d = new Date(E.inicio+"T12:00"); const f = new Date(E.fim+"T12:00");
+  while(d <= f && out.length < 31){ out.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
+  return out;
+}
+function atualizarPeriodo(){
+  const ds = E.linhas.filter(l=>l.incluir!==false && l.data).map(l=>l.data).sort();
+  E.inicio = ds[0]||""; E.fim = ds[ds.length-1]||"";
+  $("#inicio").value = E.inicio; $("#fim").value = E.fim;
+}
+// ---- sugestões de cidade/UF a partir das cidades que aparecem nas notas ----
+const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
+const semAc = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+const conector = w => /^(de|da|do|das|dos|e)$/i.test(w);
+function sugestoesCidades(){
+  const cand = {};  // chave -> {uf, chave, nomes:{nome:qtd}, notas:Set}
+  E.linhas.forEach((l, i) => {
+    if(l.incluir === false) return;
+    for(const c of (l.cidades||[])){
+      const k = semAc(c.cidade).replace(/[^A-Z]/g,"") + "/" + c.uf;
+      const x = cand[k] ||= {uf:c.uf, chave:k, nomes:{}, notas:new Set(), palavras:c.cidade.split(/\s+/)};
+      x.nomes[c.cidade] = (x.nomes[c.cidade]||0) + 1; x.notas.add(i);
+    }
+  });
+  // junta lixo do OCR na cidade certa: "Dos Servigos Rio Verde" / "Enitempe Goiania" -> "Rio Verde" / "Goiania"
+  const lista = Object.values(cand).sort((a,b)=>a.chave.length-b.chave.length);
+  const final = [];
+  for(const x of lista){
+    const nomeComposto = x.palavras.slice(1).some(conector);  // "Aparecida de Goiânia" é cidade de verdade
+    const alvo = !nomeComposto && final.find(c => c.uf===x.uf && c.chave.length>=7 && x.chave.endsWith(c.chave.split("/")[0]+"/"+c.uf));
+    if(alvo){ Object.entries(x.nomes).forEach(([n,q])=>alvo.nomes[n]=(alvo.nomes[n]||0)+q); x.notas.forEach(i=>alvo.notas.add(i)); continue; }
+    if(conector(x.palavras[0])) continue;
+    if(x.palavras.length >= 3 && !nomeComposto && x.notas.size === 1) continue;
+    final.push(x);
+  }
+  return final.map(x => {
+    const nomes = Object.keys(x.nomes).filter(n => semAc(n).replace(/[^A-Z]/g,"")+"/"+x.uf === x.chave);
+    const nome = nomes.find(n => /[^\x00-\x7f]/.test(n)) || nomes.sort((a,b)=>x.nomes[b]-x.nomes[a])[0] || Object.keys(x.nomes)[0];
+    return {cidade:nome, uf:x.uf, n:x.notas.size};
+  }).sort((a,b)=>b.n-a.n || a.cidade.localeCompare(b.cidade));
+}
+let SUG = [];
+function atualizarSugestoes(){
+  SUG = sugestoesCidades();
+  $("#dl-cidades").innerHTML = SUG.map(c=>`<option value="${esc(c.cidade)}" label="${c.uf} · ${c.n} nota${c.n>1?"s":""}"></option>`).join("");
+  const ufs = [...new Set([...SUG.map(c=>c.uf), ...UFS])];
+  $("#dl-ufs").innerHTML = ufs.map(u=>`<option value="${u}"></option>`).join("");
+}
+$("#cidade").addEventListener("input", ev => {  // escolheu uma cidade sugerida: já preenche a UF
+  const c = SUG.find(x => semAc(x.cidade) === semAc(ev.target.value.trim()));
+  if(c && E.uf !== c.uf){ E.uf = c.uf; $("#uf").value = c.uf; salvar(); }
+});
+
+function resumo(){
+  atualizarSugestoes();
+  atualizarPeriodo();
+  const dias = diasViagem(), box = $("#resumo"), al = [];
+  if(!dias.length){ box.innerHTML = '<p class="muted">As datas aparecem quando as notas tiverem data.</p>'; $("#alertas").innerHTML="";
+    POLX = []; REEMB = []; $("#politica").innerHTML = ""; return; }  // sem notas com data: nada de política na tela
+  const tab = {}; dias.forEach(d=>tab[d]={});
+  let fora = 0, semCat = 0;
+  for(const l of E.linhas){
+    if(l.incluir===false || !l.valor) continue;
+    if(!tab[l.data]){ fora++; continue; }
+    if(!l.categoria){ semCat++; continue; }
+    tab[l.data][l.categoria] = (tab[l.data][l.categoria]||0) + Number(l.valor);
+  }
+  const cats = CATS.filter(c => dias.some(d=>tab[d][c]));
+  let h = `<table><thead><tr><th>Dia</th>${cats.map(c=>`<th>${c}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;
+  const tc = {}; let tg = 0;
+  for(const d of dias){
+    let t = 0;
+    h += `<tr><td>${dbr(d)}</td>` + cats.map(c=>{ const v = tab[d][c]||0; t+=v; tc[c]=(tc[c]||0)+v;
+      return `<td data-ch="${d}|${c}">${v?br(v):"–"}</td>`; }).join("") + `<td><b>${br(t)}</b></td></tr>`;
+    tg += t;
+  }
+  h += `</tbody><tfoot><tr><td>Total</td>${cats.map(c=>`<td>${br(tc[c])}</td>`).join("")}<td>R$ ${br(tg)}</td></tr></tfoot></table>`;
+  box.innerHTML = h;
+  if(fora) al.push(`${fora} nota(s) com data fora dos dias da viagem.`);
+  if(semCat) al.push(`${semCat} nota(s) sem categoria.`);
+  const semObs = E.linhas.filter(l => l.incluir!==false && l.categoria==="Outras Despesas" && !String(l.obs||"").trim()).length;
+  if(semObs) al.push(`${semObs} nota(s) em Outras Despesas sem dizer o que foi — preencha o campo em vermelho.`);
+  const nOutras = E.linhas.filter(l => l.incluir!==false && l.categoria==="Outras Despesas" && Number(l.valor)>0).length;
+  if(nOutras > 3) al.push(`${nOutras} notas em Outras Despesas: a planilha só tem 3 linhas de observação.`);
+  $("#alertas").innerHTML = al.map(a=>`<div class="alerta">${a}</div>`).join("");
+  pedirPolitica();
+}
+
+// ---- política: limites por dia (hospedagem por diária) de "Meus dados" ----
+// Acima do limite: justificar (motivo vai no e-mail) ou, sem motivo, o reembolso é ajustado ao limite automaticamente.
+let tPol;
+function pedirPolitica(){
+  clearTimeout(tPol);
+  tPol = setTimeout(async () => {
+    try{ const r = await api("/api/politica", E); POLX = r.excessos; const mudou = JSON.stringify(r.reembolso) !== JSON.stringify(REEMB);
+         REEMB = r.reembolso; desenharPolitica(); if(mudou) atualizarReembolso(); }catch(e){}
+  }, 250);
+}
+function desenharPolitica(){
+  document.querySelectorAll("td[data-ch]").forEach(td => {
+    const x = POLX.find(p => p.chave === td.dataset.ch);
+    td.classList.toggle("acima", !!x); td.classList.toggle("just", !!(x && x.modo==="justificar"));
+    td.title = x ? `Limite R$ ${br(x.limite)}${x.diarias>1?` (${x.diarias} diárias)`:""} — ${x.modo==="justificar"?"justificado":"ajustado ao limite"}` : "";
+  });
+  const box = $("#politica");
+  const at = document.activeElement, foco = at && at.dataset && at.dataset.motivo ? {ch:at.dataset.motivo, s:at.selectionStart} : null;
+  if(!POLX.length){ box.innerHTML = ""; return; }
+  E.excessos = E.excessos || {};
+  box.innerHTML = `<p style="margin:14px 0 0"><b>Gastos acima da política</b> <span class="muted">(Hospedagem R$ ${br(POL["Hospedagem"]||0)} por diária · Refeições R$ ${br(POL["Refeições"]||0)} por dia).
+      Explique o motivo, que vai no e-mail. Sem motivo, o reembolso é ajustado ao limite automaticamente (as notas continuam no PDF; a planilha leva o valor ajustado).</span></p>` +
+    POLX.map(x => {
+      const d = E.excessos[x.chave] || {}, just = x.escolha === "justificar";
+      return `<div class="exc ${x.modo==="justificar"?"just":""}" data-chave="${x.chave}">
+        <h3>${dbr(x.data)} · ${x.categoria}: R$ ${br(x.total)} — limite R$ ${br(x.limite)}${x.diarias>1?` (${x.diarias} diárias)`:""} · passou R$ ${br(x.excesso)}
+          ${x.modo==="justificar"?'<span class="tag jt">justificado no e-mail</span>':'<span class="tag aj">ajustado ao limite</span>'}</h3>
+        <div class="op">
+          <label><input type="radio" name="op-${x.chave}" value="ajustar" ${!just?"checked":""}>Ajustar o reembolso ao limite</label>
+          <label><input type="radio" name="op-${x.chave}" value="justificar" ${just?"checked":""}>Explicar o motivo (vai no e-mail)</label>
+        </div>
+        ${just ? `<textarea placeholder="Motivo — ex.: único hotel disponível na cidade. Sem motivo, o valor é ajustado ao limite." data-motivo="${x.chave}">${esc(d.motivo||"")}</textarea>` : ""}
+        ${x.modo==="ajustar" ? `<div class="muted">Reembolso na planilha: ${
+            x.ajustes.map(a => `<b>${esc(a.descricao||a.arquivo)}</b> R$ ${br(a.de)} → R$ ${br(a.para)}`).join("; ")} (total R$ ${br(x.limite)}).</div>` : ""}
+      </div>`;
+    }).join("");
+  box.querySelectorAll("input[type=radio]").forEach(r => r.onchange = () => {
+    const ch = r.closest(".exc").dataset.chave;
+    E.excessos[ch] = {...(E.excessos[ch]||{}), modo: r.value}; salvar(); pedirPolitica();
+  });
+  box.querySelectorAll("textarea[data-motivo]").forEach(t => t.oninput = () => {
+    E.excessos[t.dataset.motivo] = {...(E.excessos[t.dataset.motivo]||{}), motivo: t.value}; salvar(); pedirPolitica();
+  });
+  if(foco){ const t = box.querySelector(`textarea[data-motivo="${foco.ch}"]`); if(t){ t.focus(); try{ t.setSelectionRange(foco.s, foco.s); }catch(e){} } }
+}
+
+// ---- tela de carregamento: bloqueia a página até enviar, ler e preparar todas as notas ----
+// Etapas com peso na barra; dentro de cada nota a barra avança devagar pelo tempo esperado, para nunca parecer parada.
+const PESO = {enviar: 0.15, ler: 0.75, imagens: 0.10};
+const NOME_ETAPA = {enviar: "Enviando as notas", ler: "Lendo as notas", imagens: "Preparando as imagens"};
+const CG = {n: 0, fases: [], fase: "", i: 0, tot: 1, t0: 0, ti: 0, esperado: 0, timer: null};
+function cargaAbrir(fases){
+  if(CG.n++ > 0) return;
+  Object.assign(CG, {fases, fase: "", i: 0, tot: 1, t0: Date.now(), ti: Date.now(), esperado: 0});
+  $("#cEtapas").innerHTML = fases.map((f,k) => `<span data-f="${f}">${k+1}. ${NOME_ETAPA[f]}</span>`).join("");
+  $("#carga").hidden = false; document.body.style.overflow = "hidden";
+  CG.timer = setInterval(cargaDesenhar, 200); cargaDesenhar();
+}
+function cargaFechar(){
+  if(--CG.n > 0) return;
+  CG.n = 0; clearInterval(CG.timer); $("#carga").hidden = true; document.body.style.overflow = "";
+}
+function cargaItem(fase, i, tot, nome, esperado){  // começou o item i (0..tot-1) da etapa
+  Object.assign(CG, {fase, i, tot: Math.max(tot, 1), ti: Date.now(), esperado});
+  $("#cAtual").textContent = nome ? `${NOME_ETAPA[fase]}: ${i+1} de ${tot} — ${nome}` : `${NOME_ETAPA[fase]}: ${Math.min(i+1, tot)} de ${tot}`;
+  cargaDesenhar();
+}
+function cargaDesenhar(){
+  if(!CG.fases.length) return;
+  const tot = CG.fases.reduce((s,f)=>s+PESO[f], 0);
+  let base = 0; for(const f of CG.fases){ if(f === CG.fase) break; base += PESO[f]; }
+  const dentro = CG.esperado ? Math.min(0.9, (Date.now()-CG.ti)/1000/CG.esperado) : 0;  // anda devagar dentro da nota
+  const pct = CG.fase ? Math.min(99, Math.floor(100 * (base + PESO[CG.fase] * (CG.i + dentro) / CG.tot) / tot)) : 0;
+  $("#cBarra").style.width = pct + "%"; $("#cPct").textContent = pct + "%";
+  $("#cTitulo").textContent = (NOME_ETAPA[CG.fase] || "Preparando") + "…";
+  $("#cEtapas").querySelectorAll("span").forEach(s => {
+    const k = CG.fases.indexOf(s.dataset.f), a = CG.fases.indexOf(CG.fase);
+    s.className = k < a ? "feita" : k === a ? "agora" : "";
+  });
+  const seg = Math.floor((Date.now()-CG.t0)/1000), segItem = Math.floor((Date.now()-CG.ti)/1000);
+  $("#cTempo").textContent = `Tempo: ${Math.floor(seg/60)}:${String(seg%60).padStart(2,"0")}` + (CG.esperado && segItem >= 3 ? ` · nesta nota há ${segItem}s` : "");
+}
+window.addEventListener("beforeunload", ev => { if(CG.n > 0){ ev.preventDefault(); ev.returnValue = ""; } });
+// soltar arquivo fora da área de envio (ou sobre a tela de carregamento) não abre o arquivo no navegador
+["dragover","drop"].forEach(t => document.addEventListener(t, ev => { if(!ev.target.closest || !ev.target.closest("#drop") || CG.n > 0) ev.preventDefault(); }));
+
+async function esperarImagens(){  // miniaturas das notas (o tratamento da foto é feito no servidor)
+  const t0 = Date.now();
+  for(;;){
+    const imgs = [...document.querySelectorAll("#linhas img[src]")], prontas = imgs.filter(im => im.complete).length;
+    cargaItem("imagens", prontas, imgs.length, "", 0);
+    if(prontas >= imgs.length || Date.now() - t0 > 120000) return;
+    await new Promise(r => setTimeout(r, 300));
+  }
+}
+
+async function enviarArquivos(files){
+  if(CG.n > 0) return;  // já está carregando
+  cargaAbrir(["enviar","ler","imagens"]);
+  let falhas = [], ok = 0, dup = 0;
+  try{ [falhas, ok, dup] = await enviarArquivos2(files); await lerPendentes(); await esperarImagens(); }
+  finally{ cargaFechar(); }
+  if(falhas.length) alert("Alguns arquivos não foram enviados:\n\n" + falhas.join("\n"));
+  if(ok || dup) $("#status").textContent = `${ok} arquivo(s) enviado(s)` + (dup ? ` · ${dup} já estava(m) no programa` : "") + " — confira os campos em amarelo";
+}
+async function enviarArquivos2(files){
+  const falhas = []; let ok = 0, dup = 0;
+  for(const [i,f] of files.entries()){
+    $("#status").textContent = `enviando ${i+1} de ${files.length}…`;
+    cargaItem("enviar", i, files.length, f.name, Math.max(1, f.size / 3e6));
+    try{
+      const j = await api("/api/upload?nome="+encodeURIComponent(f.name), f, true);
+      if(j.duplicado){ dup++; if(!E.linhas.some(l=>l.arquivo===j.arquivo)) E.linhas.push(novaLinha(j.arquivo)); continue; }
+      arquivos.push(j.arquivo); E.linhas.push(novaLinha(j.arquivo)); ok++;
+    }catch(e){
+      if(e.message === FORA_DO_AR){ alert(FORA_DO_AR + "\n\nNão enviados: " + files.slice(i).map(x=>x.name).join(", ")); break; }
+      falhas.push(f.name + " — " + e.message);
+    }
+  }
+  desenharLinhas(); resumo(); if(ok || dup) salvar();
+  return [falhas, ok, dup];
+}
+
+// Leitura automática: uma nota por vez, só preenche campos vazios (não apaga o que você digitou)
+const filaLeitura = () => E.linhas.filter(l => l.arquivo && arquivos.includes(l.arquivo) &&
+  ((!l.lido && !String(l.valor||"").trim()) || l.cidades === undefined));
+let lendoProm = null;
+async function lerPendentes(){
+  if(CG.n === 0){  // chamada fora de um envio (abrir o programa, "Ler de novo"): abre a tela de carregamento
+    if(!filaLeitura().length) return;
+    cargaAbrir(["ler","imagens"]);
+    try{ await lerPendentes(); await esperarImagens(); } finally{ cargaFechar(); }
+    return;
+  }
+  if(!lendoProm) lendoProm = lerPendentes2().finally(() => { lendoProm = null; });
+  return lendoProm;
+}
+async function lerPendentes2(){
+  let feitas = 0;
+  {
+    for(;;){
+      const fila = filaLeitura();
+      if(!fila.length) break;
+      const l = fila[0]; l.lendo = true; desenharLinhas();
+      $("#status").textContent = `lendo notas… faltam ${fila.length}`;
+      cargaItem("ler", feitas, feitas + fila.length, l.arquivo, isPdf(l.arquivo) ? 2 : 10);
+      feitas++;
+      try{
+        const r = await api("/api/ler?arquivo=" + encodeURIComponent(l.arquivo), {});
+        l.auto = l.auto || [];
+        l.cidades = r.cidades || [];
+        if(!l.lido){  // primeira leitura: preenche os campos vazios (nas releituras só atualiza as cidades)
+          for(const k of ["categoria","valor","descricao","obs"]) if(r[k] && !String(l[k]||"").trim()){ l[k] = r[k]; l.auto.push(k); }
+          if(r.data){ if(r.data !== l.data) l.auto.push("data"); l.data = r.data; if(r.hora) l.hora = r.hora; }
+          else if(l.data) l.auto.push("data");
+        }
+      }catch(e){ if(e.message === FORA_DO_AR){ l.lendo = false; break; } }
+      l.lendo = false; l.lido = true;
+      desenharLinhas(); resumo(); salvar();
+    }
+  }
+  if($("#status").textContent.startsWith("lendo")) $("#status").textContent = "notas lidas — confira os campos em amarelo";
+}
+const drop = $("#drop");
+drop.onclick = () => $("#file").click();
+$("#file").onchange = ev => { enviarArquivos([...ev.target.files]); ev.target.value = ""; };
+drop.ondragover = ev => { ev.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = ev => { ev.preventDefault(); drop.classList.remove("over"); enviarArquivos([...ev.dataTransfer.files]); };
+
+let ULTIMO = null;  // resultado da última geração (arquivos, assunto e texto do e-mail)
+async function abrirEmail(bt){  // cria o rascunho (não envia): confira e clique em Enviar no Outlook
+  const d = {pdf: ULTIMO.pdf, xlsx: ULTIMO.xlsx, xlsx_pdf: ULTIMO.xlsx_pdf, assunto: ULTIMO.assunto, corpo: ULTIMO.corpo};
+  bt.disabled = true; const t = bt.textContent; bt.textContent = "Criando o e-mail…";
+  try{
+    const r = await api("/api/email", d);
+    if(r.conectar){  // primeira vez: entrar com a conta Microsoft da empresa (volta para cá e cria o e-mail)
+      if(confirm("Para criar o e-mail no seu Outlook com os anexos, entre uma vez com a sua conta Microsoft da empresa.\n\nContinuar?"))
+        location.href = "/ms/conectar";
+    }else if(!r.ok) alert(r.erro);
+    else if(r.como === "outlook"){
+      if(r.link) window.open(r.link, "_blank", "noopener");
+      $("#emailInfo").innerHTML = `E-mail criado nos <b>Rascunhos</b> do seu Outlook${r.para ? " para " + esc(r.para) : ""}, com os PDFs anexados` +
+        (r.link ? ` (<a href="${esc(r.link)}" target="_blank" rel="noopener">abrir</a>)` : "") + ". Confira e clique em Enviar; depois marque como enviado abaixo.";
+    }else{  // sem conta Microsoft no servidor: abre o e-mail e baixa os anexos para anexar à mão
+      document.querySelector('#saida a[href^="/api/baixar_zip"]').click();
+      setTimeout(() => { location.href = r.mailto; }, 600);
+      $("#emailInfo").innerHTML = "Abri um e-mail novo com destinatário, assunto e texto, e baixei os arquivos (.zip). <b>Anexe os PDFs</b> antes de enviar.";
+    }
+  }catch(e){ alert(e.message); }
+  bt.disabled = false; bt.textContent = t;
+}
+function mostrarResultado(r){
+  $("#saida").innerHTML = `
+        <div class="ok">Total do relatório (reembolso): <b>R$ ${br(r.total)}</b>${Math.abs(r.total-r.total_notas)>0.004?` · notas somam R$ ${br(r.total_notas)} (ajustado à política)`:""} · PDF com ${r.paginas} páginas (${r.pdf_mb} MB)</div>
+        <p>Arquivos gerados:<br>📄 ${esc(r.pdf)}<br>📊 ${esc(r.xlsx)}${r.xlsx_pdf ? `<br>📑 ${esc(r.xlsx_pdf)}` : ""}</p>
+        ${r.alertas.map(a=>`<div class="alerta">${esc(a)}</div>`).join("")}
+        <p><b>Assunto</b> <button class="mini" onclick="copiar('assunto')">Copiar</button></p><pre id="assunto">${esc(r.assunto)}</pre>
+        <p><b>Corpo do e-mail</b> <button class="mini" onclick="copiar('corpo')">Copiar</button></p><pre id="corpo">${esc(r.corpo)}</pre>
+        <p class="row"><button class="pri" id="btnEmail" onclick="abrirEmail(this)">✉ Criar e-mail no Outlook (com os PDFs anexados)</button>
+          <span class="muted" id="emailInfo">${CFG && CFG.email_para ? "Para: " + esc(CFG.email_para) : 'Sem e-mail do aprovador: preencha em <a href="#" onclick="abrirDados(false);return false">Meus dados</a> (ou digite no e-mail).'}</span></p>
+        <p class="row"><button class="pri" onclick="marcarEnviado(E.id, true)">Já enviei o e-mail — marcar como enviado</button>
+          <span class="muted">(fica registrado no Histórico, logo abaixo)</span></p>
+        <div class="baixar"><b>Baixar os arquivos gerados</b>
+          <div class="row">
+            <a class="btn pri" href="/api/baixar?arquivo=${encodeURIComponent(r.pdf)}" download>📄 Baixar PDF das notas</a>
+            <a class="btn pri" href="/api/baixar?arquivo=${encodeURIComponent(r.xlsx)}" download>📊 Baixar planilha</a>
+            ${r.xlsx_pdf ? `<a class="btn pri" href="/api/baixar?arquivo=${encodeURIComponent(r.xlsx_pdf)}" download>📑 Baixar planilha em PDF</a>` : ""}
+            <a class="btn" href="/api/baixar_zip?pdf=${encodeURIComponent(r.pdf)}&xlsx=${encodeURIComponent(r.xlsx)}&xlsx_pdf=${encodeURIComponent(r.xlsx_pdf||"")}" download>🗜 Baixar tudo (.zip)</a>
+          </div><span class="muted">Os arquivos vão para a pasta de Downloads do navegador (também ficam guardados na sua conta, no Histórico).</span></div>`;
+}
+function copiar(id){ navigator.clipboard.writeText($("#"+id).textContent); }
+$("#btnGerar").onclick = async ev => {
+  ev.target.disabled = true; $("#saida").innerHTML = '<p class="muted">Gerando… (o tratamento das fotos pode levar alguns segundos por nota)</p>';
+  try{
+    const r = await api("/api/gerar", E); ULTIMO = r;
+    if(!r.ok){ $("#saida").innerHTML = r.erros.map(e=>`<div class="erro">${esc(e)}</div>`).join(""); }
+    else mostrarResultado(r);
+  }catch(e){ $("#saida").innerHTML = `<div class="erro">${esc(e.message)}</div>`; }
+  ev.target.disabled = false; carregarHistorico();
+};
+setInterval(()=>{ fetch("/api/ping").then(()=>{ if($("#status").textContent==="sem conexão") $("#status").textContent="pronto"; })
+  .catch(()=>{ $("#status").textContent = "sem conexão"; }); }, 15000);
+$("#btnNova").onclick = async () => {
+  if(!confirm("Começar uma nova viagem?\n\nTODAS as notas (usadas ou não), os relatórios e os dados desta viagem saem da tela. Os relatórios ficam no Histórico para baixar.")) return;
+  try{
+    const r = await api("/api/nova_viagem", E);
+    alert(!r.pasta ? "Programa esvaziado (não havia notas para guardar)." :
+      "Viagem guardada no Histórico." + (r.falhas.length ? "\n\nNão consegui mover: " + r.falhas.join(", ") : "") +
+      (r.enxugado ? `\n\nComo o e-mail já foi enviado, as fotos originais foram apagadas (${br(r.liberado_mb)} MB). Ficaram o PDF das notas e a planilha, no Histórico.` : ""));
+    $("#saida").innerHTML = ""; POLX = []; REEMB = []; $("#politica").innerHTML = "";  // nada da viagem anterior fica na tela
+    await carregar(); carregarHistorico();
+  }catch(e){ alert(e.message); }
+};
+
+// ---- Meus dados (config.json) ----
+let CFG = null, CORPO_PADRAO = "";
+const dlg = $("#dlgDados"), fD = $("#fDados");
+async function carregarConfig(){
+  const j = await api("/api/config");
+  CFG = j.config; CORPO_PADRAO = j.corpo_padrao; POL = {"Hospedagem": CFG.limite_hospedagem_diaria, "Refeições": CFG.limite_refeicao_dia};
+  $("#quem").textContent = CFG.nome ? CFG.nome : "";
+  $("#versao").textContent = j.versao ? "Versão " + j.versao : "";
+  $("#assPrev").hidden = $("#btnAssDel").hidden = !j.assinatura;
+  if(j.assinatura) $("#assPrev").src = "/api/assinatura?t=" + Date.now();
+  return j;
+}
+async function abrirDados(primeiroUso){
+  const j = await carregarConfig();
+  for(const el of fD.elements) if(el.name) el.value = CFG[el.name] ?? "";
+  $("#dadosIntro").innerHTML = primeiroUso
+    ? "<b>Bem-vindo!</b> Antes de começar, preencha seus dados. Eles vão na planilha e no e-mail de todos os relatórios e ficam só neste computador (arquivo config.json). Para mudar depois, use o botão <b>Meus dados</b> no topo."
+    : "Estes dados vão na planilha e no e-mail de todos os relatórios. Ficam só neste computador (arquivo config.json).";
+  $("#btnDadosCancelar").hidden = !!primeiroUso;
+  $("#dadosErro").innerHTML = ""; dlg.showModal();
+}
+fD.elements.nome.addEventListener("change", ev => {  // sugere o nome curto pelo primeiro nome
+  if(!fD.elements.nome_curto.value.trim()) fD.elements.nome_curto.value = semAc(ev.target.value.trim().split(/\s+/)[0]||"");
+});
+fD.onsubmit = async ev => {
+  ev.preventDefault();
+  const d = {}; for(const el of fD.elements) if(el.name) d[el.name] = el.value;
+  const faltam = [...fD.querySelectorAll("label")].filter(l => /\*/.test(l.firstChild.textContent) && !l.querySelector("input").value.trim()).map(l => l.firstChild.textContent.replace("*","").trim());
+  if(faltam.length){ $("#dadosErro").innerHTML = `<div class="erro">Preencha: ${esc(faltam.join(", "))}.</div>`; return; }
+  try{
+    const r = await api("/api/config", d);
+    if(!r.ok){ $("#dadosErro").innerHTML = r.erros.map(e=>`<div class="erro">${esc(e)}</div>`).join(""); return; }
+    dlg.close(); await carregarConfig(); resumo();
+  }catch(e){ $("#dadosErro").innerHTML = `<div class="erro">${esc(e.message)}</div>`; }
+};
+dlg.addEventListener("cancel", ev => { if($("#btnDadosCancelar").hidden) ev.preventDefault(); });  // 1º uso: não fecha com Esc
+$("#btnDadosCancelar").onclick = () => dlg.close();
+$("#btnDados").onclick = () => abrirDados(false);
+$("#corpoPadrao").onclick = ev => { ev.preventDefault(); fD.elements.corpo_email.value = CORPO_PADRAO; };
+$("#btnAss").onclick = () => $("#fileAss").click();
+$("#fileAss").onchange = async ev => {
+  const f = ev.target.files[0]; ev.target.value = ""; if(!f) return;
+  try{ await api("/api/assinatura", f, true); await carregarConfig(); }catch(e){ alert(e.message); }
+};
+$("#btnAssDel").onclick = async () => { await api("/api/assinatura?apagar=1", {}); await carregarConfig(); };
+
+// ---- histórico ----
+let HIST = [];
+const dh = s => s ? `${s.slice(8,10)}/${s.slice(5,7)}/${s.slice(2,4)} ${s.slice(11,16)}`.trim() : "";
+function statusHist(x){
+  if(!x.gerado_em) return '<span class="tag st-nao">não gerado</span>';
+  if(x.enviado && x.gerado_depois_do_envio) return `<span class="tag st-pend">enviado em ${dh(x.enviado_em)}, mas gerado de novo depois — reenviar?</span>`;
+  if(x.enviado) return `<span class="tag st-ok">✔ enviado em ${dh(x.enviado_em)}</span>` +
+    (x.enxugado ? `<br><span class="muted" title="Ficaram o PDF das notas e a planilha">fotos originais apagadas (${br(x.liberado_mb)} MB)</span>` : "");
+  return '<span class="tag st-pend">gerado — falta enviar</span>';
+}
+async function carregarHistorico(){
+  try{ HIST = await api("/api/historico"); }catch(e){ $("#hist").innerHTML = `<div class="erro">${esc(e.message)}</div>`; return; }
+  if(!HIST.length){ $("#hist").innerHTML = '<p class="muted">Nenhum relatório gerado ainda.</p>'; return; }
+  $("#hist").innerHTML = `<table><thead><tr><th>Viagem</th><th style="text-align:left">Cliente / cidade</th><th>Notas</th><th>Total</th>
+      <th style="text-align:left">Gerado em</th><th style="text-align:left">E-mail</th><th></th></tr></thead><tbody>${
+    HIST.map(x => `<tr class="${x.id===E.id?"atual":""}">
+      <td>${dbr(x.inicio)} a ${dbr(x.fim)}${x.inicio?"/"+x.inicio.slice(2,4):""}${x.id===E.id?'<br><span class="tag">viagem atual</span>':""}</td>
+      <td style="text-align:left">${esc(x.cliente||"—")}<br><span class="muted">${esc(x.cidade||"")}${x.uf?"/"+esc(x.uf):""}</span></td>
+      <td>${x.notas??""}</td><td>${x.total!=null?"R$ "+br(x.total):"—"}</td>
+      <td style="text-align:left">${dh(x.gerado_em)||"—"}${x.geracoes>1?`<br><span class="muted">${x.geracoes} vezes</span>`:""}</td>
+      <td style="text-align:left">${statusHist(x)}<br>${x.gerado_em?`<label class="chk"><input type="checkbox" ${x.enviado?"checked":""} onchange="marcarEnviado('${x.id}', this.checked)">Enviado</label>`:""}</td>
+      <td>${x.gerado_em?`<a class="btn" style="padding:3px 9px;font-size:13px" href="/api/historico/baixar?id=${encodeURIComponent(x.id)}" download>Baixar</a>`:""}</td></tr>`).join("")
+  }</tbody></table>`;
+  const atual = HIST.find(x => x.id === E.id);
+  const chip = $("#chipHist") || Object.assign(document.createElement("span"), {id:"chipHist"});
+  chip.className = "tag " + (!atual||!atual.gerado_em ? "st-nao" : atual.enviado && !atual.gerado_depois_do_envio ? "st-ok" : "st-pend");
+  chip.textContent = !atual||!atual.gerado_em ? "relatório não gerado" : atual.enviado && !atual.gerado_depois_do_envio ? "✔ e-mail enviado" : "falta enviar o e-mail";
+  if(!chip.parentNode) $("header h1").after(chip);
+}
+async function marcarEnviado(id, enviado){
+  try{ await api("/api/historico/enviado", {id, enviado}); await carregarHistorico();
+    if(enviado) $("#status").textContent = "marcado como enviado"; }
+  catch(e){ alert(e.message); }
+}
+
+// ---- conta: quem está logado, trocar senha, usuários (administrador), sair ----
+let EU = null;
+const dlgSenha = $("#dlgSenha"), fS = $("#fSenha");
+function abrirSenha(obrigatoria){
+  fS.reset(); $("#senhaErro").innerHTML = "";
+  $("#senhaIntro").innerHTML = obrigatoria ? "<b>Troque a senha provisória</b> antes de continuar. Mínimo de 8 caracteres, com letras e números."
+    : "Mínimo de 8 caracteres, com letras e números.";
+  $("#btnSenhaCancelar").hidden = !!obrigatoria; if(!dlgSenha.open) dlgSenha.showModal();
+}
+dlgSenha.addEventListener("cancel", ev => { if($("#btnSenhaCancelar").hidden) ev.preventDefault(); });
+$("#btnSenhaCancelar").onclick = () => dlgSenha.close();
+$("#btnSenha").onclick = () => abrirSenha(false);
+fS.onsubmit = async ev => {
+  ev.preventDefault();
+  if(fS.nova.value !== fS.conf.value){ $("#senhaErro").innerHTML = '<div class="erro">As senhas novas não são iguais.</div>'; return; }
+  try{ const r = await api("/api/senha", {atual: fS.atual.value, nova: fS.nova.value});
+       if(r.ok){ dlgSenha.close(); alert("Senha trocada."); location.reload(); } }
+  catch(e){ $("#senhaErro").innerHTML = `<div class="erro">${esc(e.message)}</div>`; }
+};
+$("#btnLogout").onclick = async () => {
+  clearTimeout(tSalvar); try{ await api("/api/estado", E); }catch(e){}
+  try{ await api("/api/logout", {}); }catch(e){} location.href = "/login";
+};
+const dlgU = $("#dlgUsuarios"), fU = $("#fUsuarios");
+function desenharUsuarios(lista){
+  $("#listaUsuarios").innerHTML = `<table><thead><tr><th>Nome</th><th style="text-align:left">Usuário</th><th>Último acesso</th><th></th></tr></thead><tbody>${
+    lista.map(u => `<tr${u.ativo ? "" : ' style="opacity:.5"'}><td>${esc(u.nome)}${u.admin ? ' <span class="tag">admin</span>' : ""}</td>
+      <td style="text-align:left">${esc(u.login)}</td><td>${u.ultimo_acesso ? dh(u.ultimo_acesso) : "—"}</td>
+      <td><button type="button" class="mini" data-senha="${esc(u.login)}">Redefinir senha</button>
+          <button type="button" class="mini" data-ativo="${esc(u.login)}" data-v="${u.ativo ? 0 : 1}">${u.ativo ? "Desativar" : "Reativar"}</button></td></tr>`).join("")}</tbody></table>`;
+  $("#listaUsuarios").querySelectorAll("[data-senha]").forEach(b => b.onclick = async () => {
+    const senha = prompt(`Senha provisória para ${b.dataset.senha} (mín. 8, com letras e números):`); if(!senha) return;
+    try{ const r = await api("/api/usuarios/senha", {login: b.dataset.senha, senha}); desenharUsuarios(r.usuarios);
+         alert("Senha redefinida. Passe a senha provisória ao técnico: ele troca no próximo acesso."); }catch(e){ alert(e.message); }
+  });
+  $("#listaUsuarios").querySelectorAll("[data-ativo]").forEach(b => b.onclick = async () => {
+    try{ desenharUsuarios((await api("/api/usuarios/alterar", {login: b.dataset.ativo, ativo: b.dataset.v === "1"})).usuarios); }catch(e){ alert(e.message); }
+  });
+}
+$("#btnUsuarios").onclick = async () => {
+  fU.reset(); $("#usuariosErro").innerHTML = "";
+  try{ desenharUsuarios(await api("/api/usuarios")); dlgU.showModal(); }catch(e){ alert(e.message); }
+};
+$("#btnUsuariosFechar").onclick = () => dlgU.close();
+$("#btnNovoUsuario").onclick = async () => {
+  $("#usuariosErro").innerHTML = "";
+  try{ const r = await api("/api/usuarios/novo", {nome: fU.nome.value, login: fU.login.value, senha: fU.senha.value, admin: fU.admin.checked});
+       desenharUsuarios(r.usuarios); alert(`Usuário ${fU.login.value.trim().toLowerCase()} cadastrado. Passe o usuário e a senha provisória ao técnico.`); fU.reset(); }
+  catch(e){ $("#usuariosErro").innerHTML = `<div class="erro">${esc(e.message)}</div>`; }
+};
+async function carregarEu(){
+  EU = await api("/api/eu");
+  $("#btnUsuarios").hidden = !EU.admin;
+  if(EU.trocar_senha) abrirSenha(true);
+  return EU;
+}
+async function restaurarResultado(){  // relatório gerado antes (ex.: voltou do login da Microsoft): mostra de novo
+  const r = await api("/api/ultimo");
+  if(r && r.ok){ ULTIMO = r; mostrarResultado(r); }
+  const ms = new URLSearchParams(location.search).get("ms");
+  if(ms){ history.replaceState(null, "", "/");
+    if(ms === "ok" && ULTIMO){ $("#btnEmail").scrollIntoView({block:"center"}); abrirEmail($("#btnEmail")); }
+    if(ms === "erro") alert("Não deu para entrar com a conta Microsoft. Tente de novo ou fale com o administrador.");
+  }
+}
+
+carregarEu().then(carregar).then(() => { carregarHistorico(); restaurarResultado(); return carregarConfig(); }).then(j => { if(j.faltando.length) abrirDados(!j.existe); })
+  .catch(e => $("#status").textContent = "erro: " + e.message);
+</script>
+</body>
+</html>
