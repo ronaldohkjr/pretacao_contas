@@ -1,4 +1,5 @@
-# A cada atualização no GitHub: monta a imagem, testa e publica no GitHub Container Registry (privado).
+# A cada atualização no GitHub: monta a imagem, testa e publica no GitHub Container Registry.
+# Publica para Intel/AMD (amd64) e ARM (arm64, ex.: Oracle Cloud Ampere "Always Free").
 name: Montar, testar e publicar
 
 on:
@@ -16,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Montar a imagem
+      - name: Montar a imagem (amd64, para o teste)
         run: docker build -t gerador:teste .
 
       - name: Testar (servidor no ar, LibreOffice e OCR)
@@ -35,11 +36,18 @@ jobs:
           "
           docker logs gerador
 
-      - name: Publicar a imagem (ghcr.io)
+      - name: Preparar a montagem para ARM
+        if: github.ref == 'refs/heads/main'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Preparar o buildx
+        if: github.ref == 'refs/heads/main'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Publicar a imagem (ghcr.io, amd64 + arm64)
         if: github.ref == 'refs/heads/main'
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           IMG="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/gerador-nf-online"
           VER="$(cat VERSAO.txt | tr -d '[:space:]')"
-          docker tag gerador:teste "$IMG:latest"; docker tag gerador:teste "$IMG:$VER"
-          docker push "$IMG:latest"; docker push "$IMG:$VER"
+          docker buildx build --platform linux/amd64,linux/arm64 -t "$IMG:latest" -t "$IMG:$VER" --push .
